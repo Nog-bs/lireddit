@@ -20,6 +20,10 @@ export class User {
     @Property({ type: "text", unique: true })
     username!: string;
 
+    @Field()
+    @Property({ type: "text", unique: true })
+    email!: string;
+
     // NO FIELD MEANS PASSWORD CAN NOT BE QUERIED
     @Property({ type: "text" })
     password!: string;
