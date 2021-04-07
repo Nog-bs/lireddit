@@ -1,11 +1,21 @@
 import { User } from "../entities/User";
 import { MyContext } from "src/types";
-import { Arg, Ctx, Field, Mutation, ObjectType, Resolver } from "type-graphql";
+import {
+    Arg,
+    Ctx,
+    Field,
+    Mutation,
+    ObjectType,
+    Query,
+    Resolver,
+} from "type-graphql";
 import argon2 from "argon2";
 import { EntityManager } from "@mikro-orm/postgresql";
-import { COOKIE_NAME } from "../constants";
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
+import { sendEmail } from "../utils/sendEmail";
+import { v4 } from "uuid";
 
 @ObjectType()
 class FieldError {
@@ -27,6 +37,44 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Mutation(() => Boolean)
+    async forgotPassword(
+        @Arg("email") email: string,
+        @Ctx() { em, redis }: MyContext
+    ) {
+        const user = await em.findOne(User, { email });
+        if (!user) {
+            // email is not in the database
+            // response is such for security (prevents phishing)
+            return true;
+        }
+
+        const token = v4();
+
+        redis.set(
+            FORGET_PASSWORD_PREFIX + token,
+            user.id,
+            "ex",
+            1000 * 60 * 60 * 24 * 3
+        ); // three days
+
+        await sendEmail(
+            email,
+            `<a href="/change-password/${token}">reset password</a>`
+        );
+        return true;
+    }
+
+    @Query(() => User, { nullable: true })
+    async me(@Ctx() { req, em }: MyContext) {
+        if (!req.session.userId) {
+            return null;
+        }
+        // not logged in
+        const user = await em.findOne(User, { id: req.session.userId });
+        return user;
+    }
+
     @Mutation(() => UserResponse)
     async register(
         @Arg("options") options: UsernamePasswordInput,
@@ -101,7 +149,7 @@ export class UserResolver {
                 errors: [
                     {
                         field: "password",
-                        message: "invalid password",
+                        message: "incorrect password",
                     },
                 ],
             };

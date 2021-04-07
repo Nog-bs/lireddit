@@ -1,20 +1,9 @@
 import { Post } from "../entities/Post";
 import { MyContext } from "src/types";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import { User } from "../entities/User";
 
 @Resolver()
 export class PostResolver {
-    @Query(() => User, { nullable: true })
-    async me(@Ctx() { req, em }: MyContext) {
-        if (!req.session.userId) {
-            return null;
-        }
-        // not logged in
-        const user = await em.findOne(User, { id: req.session.userId });
-        return user;
-    }
-
     @Query(() => [Post])
     async posts(@Ctx() { em }: MyContext): Promise<Post[]> {
         return em.find(Post, {});
