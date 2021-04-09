@@ -13,3 +13,4 @@ Summary: following a 14 hour tutorial by Ben Award to code / deploy an app with 
 -   Redis
 -   Next.js
 -   TypeGraphQL
+-   Chakra
