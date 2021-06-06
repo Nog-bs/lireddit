@@ -10,30 +10,43 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import redis from "redis";
 import session from "express-session";
+import connectRedis from "connect-redis";
+import { MyContext } from "./types";
 
-let RedisStore = require("connect-redis")(session);
-let redisClient = redis.createClient();
-
-app.use(
-    session({
-        store: new RedisStore({ client: redisClient }),
-        saveUninitialized: false,
-        secret: "keyboard cat",
-        resave: false,
-    })
-);
 const main = async () => {
     const orm = await MikroORM.init(mikroConfig);
     // RUNNING MIGRATIONS (NOT RERUNNING OLD MIGRATIONS)
     await orm.getMigrator().up();
 
     const app = express();
+
+    let RedisStore = connectRedis(session);
+    let redisClient = redis.createClient();
+
+    app.use(
+        session({
+            name: "qid",
+            store: new RedisStore({
+                client: redisClient,
+                disableTouch: true,
+            }),
+            cookie: {
+                maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
+                httpOnly: true,
+                secure: __prod__, // cookie only works in https
+                sameSite: "lax",
+            },
+            secret: "kadladmalkdajwdlkamdal",
+            resave: false,
+        })
+    );
+
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false,
         }),
-        context: () => ({ em: orm.em }),
+        context: ({ req, res }): MyContext => ({ em: orm.em, req, res }),
     });
 
     apolloServer.applyMiddleware({ app });
@@ -41,9 +54,6 @@ const main = async () => {
     app.listen(4000, () => {
         console.log("---Server started on localhost: 4000---");
     });
-
-    // const posts = await orm.em.find(Post, {});
-    // console.log(posts);
 };
 
 main().catch((err) => console.error(err));
