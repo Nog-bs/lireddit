@@ -36,6 +36,7 @@ const main = async () => {
                 secure: __prod__, // cookie only works in https
                 sameSite: "lax",
             },
+            saveUninitialized: false,
             secret: "kadladmalkdajwdlkamdal",
             resave: false,
         })

@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 
 export type MyContext = {
     em: EntityManager<IDatabaseDriver<Connection>>;
-    req: Request;
+    // & joins the types together
+    req: Request & { session: { userId: number } };
     res: Response;
 };

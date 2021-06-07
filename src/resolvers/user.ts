@@ -6,6 +6,7 @@ import {
     InputType,
     Mutation,
     ObjectType,
+    Query,
     Resolver,
 } from "type-graphql";
 import { User } from "../entities/User";
@@ -40,6 +41,17 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Query(() => User, { nullable: true })
+    async me(@Ctx() { req, em }: MyContext) {
+        // you are not logged in
+        if (!req.session.userId) {
+            return null;
+        }
+
+        const user = await em.findOne(User, { id: req.session.userId });
+        return user;
+    }
+
     // FIRST LETTER CAPITALIZED
     @Mutation(() => UserResponse)
     async register(
@@ -95,7 +107,7 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async login(
         @Arg("options") options: UsernamePasswordInput,
-        @Ctx() { em }: MyContext
+        @Ctx() { em, req }: MyContext
     ): Promise<UserResponse> {
         const user = await em.findOne(User, { username: options.username });
 
@@ -124,6 +136,8 @@ export class UserResolver {
         }
 
         await em.persistAndFlush(user);
+
+        req.session.userId = user.id;
 
         return {
             user,
