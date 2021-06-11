@@ -127,7 +127,7 @@ export class UserResolver {
                 errors: [
                     {
                         field: "username",
-                        message: "that username doesn't exit",
+                        message: "username does not exist",
                     },
                 ],
             };
