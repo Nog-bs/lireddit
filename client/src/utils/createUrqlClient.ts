@@ -5,6 +5,7 @@ import {
     MeQuery,
     MeDocument,
     RegisterMutation,
+    LogoutMutation,
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 
@@ -18,7 +19,15 @@ export const createUrqlClient = (ssrExchange: any) => ({
         cacheExchange({
             updates: {
                 Mutation: {
-                    login: (_result, args, cache, info) => {
+                    logout: (_result, _args, cache, _info) => {
+                        betterUpdateQuery<LogoutMutation, MeQuery>(
+                            cache,
+                            { query: MeDocument },
+                            _result,
+                            () => ({ me: null })
+                        );
+                    },
+                    login: (_result, _args, cache, _info) => {
                         betterUpdateQuery<LoginMutation, MeQuery>(
                             cache,
                             { query: MeDocument },
