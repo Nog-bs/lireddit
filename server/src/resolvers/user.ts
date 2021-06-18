@@ -68,8 +68,7 @@ export class UserResolver {
             };
         }
 
-        const userIdNum = parseInt(userId);
-        const user = await User.findOne(userIdNum);
+        const user = await em.findOne(User, { id: parseInt(userId) });
 
         if (!user) {
             return {
@@ -85,6 +84,8 @@ export class UserResolver {
         user.password = await argon2.hash(newPassword);
 
         await em.persistAndFlush(user);
+
+        await redis.del(key);
 
         // log in user after change password
         req.session.userId = user.id;

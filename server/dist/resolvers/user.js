@@ -84,8 +84,7 @@ let UserResolver = class UserResolver {
                     ],
                 };
             }
-            const userIdNum = parseInt(userId);
-            const user = yield User_1.User.findOne(userIdNum);
+            const user = yield em.findOne(User_1.User, { id: parseInt(userId) });
             if (!user) {
                 return {
                     errors: [
@@ -98,6 +97,7 @@ let UserResolver = class UserResolver {
             }
             user.password = yield argon2_1.default.hash(newPassword);
             yield em.persistAndFlush(user);
+            yield redis.del(key);
             req.session.userId = user.id;
             return { user };
         });
