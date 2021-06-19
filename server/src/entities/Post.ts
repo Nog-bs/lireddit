@@ -1,24 +1,31 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "type-graphql";
+import {
+    BaseEntity,
+    Column,
+    CreateDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from "typeorm";
 
 // OBJECTYPE ALLOWS ONE TO MAKE A GRAPHQL SCHEMA
 @ObjectType()
 @Entity()
-export class Post {
+export class Post extends BaseEntity {
     @Field()
-    @PrimaryKey()
+    @PrimaryGeneratedColumn()
     id!: number;
 
     @Field(() => String)
-    @Property({ type: "date" })
-    createdAt = new Date();
+    @CreateDateColumn()
+    createdAt: Date;
 
     @Field(() => String)
     // HOOK TO UPDATE DATE
-    @Property({ type: "date", onUpdate: () => new Date() })
-    updatedAt = new Date();
+    @UpdateDateColumn()
+    updatedAt: Date;
 
     @Field()
-    @Property()
+    @Column()
     title!: string;
 }
