@@ -148,6 +148,8 @@ export class UserResolver {
         const hashedPassword = await argon2.hash(options.password);
         let user;
         try {
+            // bottom is the shorthand way for doing the operations on lines 153 to 163
+            // User.create({}).save()
             const result = await getConnection()
                 .createQueryBuilder()
                 .insert()
@@ -159,10 +161,8 @@ export class UserResolver {
                 })
                 .returning("*")
                 .execute();
-            console.log("result: ", result);
-            user = result.raw;
+            user = result.raw[0];
         } catch (err) {
-            console.log("err: ", err);
             if (err.code === "23505") {
                 // duplicate username error
                 return {
