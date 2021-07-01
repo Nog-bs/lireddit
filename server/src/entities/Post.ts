@@ -5,9 +5,11 @@ import {
     CreateDateColumn,
     Entity,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { Updoot } from "./Updoot";
 import { User } from "./User";
 
 // OBJECTYPE ALLOWS ONE TO MAKE A GRAPHQL SCHEMA
@@ -34,6 +36,10 @@ export class Post extends BaseEntity {
     @Column()
     creatorId: number;
 
+    @OneToMany(() => Updoot, (updoot) => updoot.post)
+    updoots: Updoot[];
+
+    @Field()
     @ManyToOne(() => User, (user) => user.posts)
     creator: User;
 

@@ -14,6 +14,7 @@ import { createConnection } from "typeorm";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
 import path from "path";
+import { Updoot } from "./entities/Updoot";
 
 // rerun
 const main = async () => {
@@ -26,7 +27,7 @@ const main = async () => {
         // synchronization is crashing
         synchronize: true,
         migrations: [path.join(__dirname, "./migrations/*")],
-        entities: [Post, User],
+        entities: [Post, User, Updoot],
     });
 
     await conn.runMigrations();
