@@ -112,10 +112,16 @@ export class PostResolver {
         const realLimit = Math.min(50, limit);
         const realLimitPlusOne = realLimit + 1;
 
-        const replacements: any[] = [realLimitPlusOne, req.session.userId];
+        const replacements: any[] = [realLimitPlusOne];
 
+        if (req.session.userId) {
+            replacements.push(req.session.userId);
+        }
+
+        let cursorIdx = 3;
         if (cursor) {
             replacements.push(new Date(parseInt(cursor)));
+            cursorIdx = replacements.length;
         }
 
         // SQL JOIN QUERY -- always will fetch creator regardless if GRAPHQL needs it or not
@@ -131,32 +137,17 @@ export class PostResolver {
                 ) creator,
                 ${
                     req.session.userId
-                        ? '(select value from updoot where user "userId" = $2 and "postId" = p.id) "voteStatus"'
-                        : "null as 'voteStatus'"
+                        ? `(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"`
+                        : `null as "voteStatus"`
                 }
             from post p
             inner join public.user u on u.id = p."creatorId"
-            ${cursor ? `where p."createdAt" < $2` : ""}
+            ${cursor ? `where p."createdAt" < $${cursorIdx}` : ""}
             order by p."createdAt" DESC
             limit $1
             `,
             replacements
         );
-
-        // const qb = getConnection()
-        //     .getRepository(Post)
-        //     .createQueryBuilder("p")
-        //     .innerJoinAndSelect("p.creator", "u", 'u.id = p."creatorId"')
-        //     .orderBy('p."createdAt"', "DESC")
-        //     .take(realLimitPlusOne);
-
-        // if (cursor) {
-        //     qb.where('p."createdAt" < :cursor', {
-        //         cursor: new Date(parseInt(cursor)),
-        //     });
-        // }
-
-        // const posts = await qb.getMany();
 
         return {
             posts: posts.slice(0, realLimit),
