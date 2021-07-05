@@ -42,6 +42,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Post.prototype, "creatorId", void 0);
 __decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Object)
+], Post.prototype, "voteStatus", void 0);
+__decorate([
     typeorm_1.OneToMany(() => Updoot_1.Updoot, (updoot) => updoot.post),
     __metadata("design:type", Array)
 ], Post.prototype, "updoots", void 0);
