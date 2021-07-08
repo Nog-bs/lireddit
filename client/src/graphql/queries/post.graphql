@@ -1,0 +1,8 @@
+query Post($id: String!) {
+    posts(limit: $limit, cursor: $curosr) {
+        hasMore
+        posts {
+            ...PostSnippet
+        }
+    }
+}
