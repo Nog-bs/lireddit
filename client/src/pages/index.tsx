@@ -1,11 +1,20 @@
+import { DeleteIcon } from "@chakra-ui/icons";
 import { Link } from "@chakra-ui/layout";
-import { Box, Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
+import {
+    Box,
+    Button,
+    Flex,
+    Heading,
+    IconButton,
+    Stack,
+    Text,
+} from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import React, { useState } from "react";
 import { Layout } from "../components/Layout";
 import { UpdootSection } from "../components/UpdootSection";
-import { usePostsQuery } from "../generated/graphql";
+import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 
 const Index = () => {
@@ -16,16 +25,10 @@ const Index = () => {
     const [{ data, fetching }] = usePostsQuery({
         variables,
     });
+    const [, deletePost] = useDeletePostMutation();
 
     return (
         <Layout>
-            <Flex alignItems="center">
-                <Heading>LiReddit</Heading>
-                <NextLink href="/create-post">
-                    <Link ml="auto">create post </Link>
-                </NextLink>
-            </Flex>
-            <br />
             {!data && fetching ? (
                 <div>loading...</div>
             ) : (
@@ -33,7 +36,7 @@ const Index = () => {
                     {data?.posts.posts.map((p, i) => (
                         <Flex key={i} p={5} shadow="md" borderWidth="1px">
                             <UpdootSection post={p} />
-                            <Box>
+                            <Box flex={1}>
                                 <NextLink
                                     href="/post/[id]"
                                     as={`/post/${p.id}`}
@@ -45,7 +48,18 @@ const Index = () => {
                                     </Link>
                                 </NextLink>
                                 <Text>posted by {p.creator.username}</Text>
-                                <Text mt={4}>{p.textSnippet}</Text>
+                                <Flex align="center">
+                                    <Text mt={4}>{p.textSnippet}</Text>
+                                    <IconButton
+                                        ml="auto"
+                                        colorScheme="red"
+                                        aria-label="Delete Post"
+                                        icon={<DeleteIcon />}
+                                        onClick={() => {
+                                            deletePost({ id: p.id });
+                                        }}
+                                    />
+                                </Flex>
                             </Box>
                         </Flex>
                     ))}
