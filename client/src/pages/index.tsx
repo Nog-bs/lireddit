@@ -1,20 +1,12 @@
-import { DeleteIcon } from "@chakra-ui/icons";
 import { Link } from "@chakra-ui/layout";
-import {
-    Box,
-    Button,
-    Flex,
-    Heading,
-    IconButton,
-    Stack,
-    Text,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import React, { useState } from "react";
+import { EditDeletePostButtons } from "../components/EditDeletePostButtons";
 import { Layout } from "../components/Layout";
 import { UpdootSection } from "../components/UpdootSection";
-import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
+import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 
 const Index = () => {
@@ -22,10 +14,18 @@ const Index = () => {
         limit: 15,
         cursor: null as null | string,
     });
-    const [{ data, fetching }] = usePostsQuery({
+    const [{ data, error, fetching }] = usePostsQuery({
         variables,
     });
-    const [, deletePost] = useDeletePostMutation();
+
+    if (!fetching && !data) {
+        return (
+            <Box>
+                <div>your query failed for some reason</div>
+                <div>{error?.message}</div>
+            </Box>
+        );
+    }
 
     return (
         <Layout>
@@ -33,36 +33,35 @@ const Index = () => {
                 <div>loading...</div>
             ) : (
                 <Stack spacing={8}>
-                    {data?.posts.posts.map((p, i) => (
-                        <Flex key={i} p={5} shadow="md" borderWidth="1px">
-                            <UpdootSection post={p} />
-                            <Box flex={1}>
-                                <NextLink
-                                    href="/post/[id]"
-                                    as={`/post/${p.id}`}
-                                >
-                                    <Link>
-                                        <Heading fontSize="xl">
-                                            {p.title}
-                                        </Heading>{" "}
-                                    </Link>
-                                </NextLink>
-                                <Text>posted by {p.creator.username}</Text>
-                                <Flex align="center">
-                                    <Text mt={4}>{p.textSnippet}</Text>
-                                    <IconButton
-                                        ml="auto"
-                                        colorScheme="red"
-                                        aria-label="Delete Post"
-                                        icon={<DeleteIcon />}
-                                        onClick={() => {
-                                            deletePost({ id: p.id });
-                                        }}
-                                    />
-                                </Flex>
-                            </Box>
-                        </Flex>
-                    ))}
+                    {data?.posts.posts.map((p, i) =>
+                        !p ? null : (
+                            <Flex key={i} p={5} shadow="md" borderWidth="1px">
+                                <UpdootSection post={p} />
+                                <Box flex={1}>
+                                    <NextLink
+                                        href="/post/[id]"
+                                        as={`/post/${p.id}`}
+                                    >
+                                        <Link>
+                                            <Heading fontSize="xl">
+                                                {p.title}
+                                            </Heading>{" "}
+                                        </Link>
+                                    </NextLink>
+                                    <Text>posted by {p.creator.username}</Text>
+                                    <Flex align="center">
+                                        <Text mt={4}>{p.textSnippet}</Text>
+                                        <Box ml="auto">
+                                            <EditDeletePostButtons
+                                                creatorId={p.creator.id}
+                                                id={p.id}
+                                            />
+                                        </Box>
+                                    </Flex>
+                                </Box>
+                            </Flex>
+                        )
+                    )}
                 </Stack>
             )}
             {data && data.posts.hasMore ? (
