@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
+require("dotenv-safe/config");
 const constants_1 = require("./constants");
 const express_1 = __importDefault(require("express"));
 const apollo_server_express_1 = require("apollo-server-express");
@@ -34,20 +35,18 @@ const createUpdootLoader_1 = require("./utils/createUpdootLoader");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const conn = yield typeorm_1.createConnection({
         type: "postgres",
-        database: "lireddit2",
-        username: "postgres",
-        password: "root",
         logging: true,
-        synchronize: true,
+        url: process.env.DATABASE_URL,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
         entities: [Post_1.Post, User_1.User, Updoot_1.Updoot],
     });
     yield conn.runMigrations();
     const app = express_1.default();
     let RedisStore = connect_redis_1.default(express_session_1.default);
-    let redis = new ioredis_1.default();
+    let redis = new ioredis_1.default(process.env.REDIS_URL);
+    app.set("proxy", 1);
     app.use(cors_1.default({
-        origin: "http://localhost:3000",
+        origin: process.env.CORS_ORIGIN,
         credentials: true,
     }));
     app.use(express_session_1.default({
@@ -63,7 +62,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             sameSite: "lax",
         },
         saveUninitialized: false,
-        secret: "kadladmalkdajwdlkamdal",
+        secret: process.env.SESSION_SECRET,
         resave: false,
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
@@ -83,7 +82,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         app,
         cors: false,
     });
-    app.listen(4000, () => {
+    app.listen(parseInt(process.env.PORT), () => {
         console.log("---Server started on localhost: 4000---");
     });
 });
