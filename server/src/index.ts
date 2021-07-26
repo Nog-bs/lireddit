@@ -31,7 +31,7 @@ const main = async () => {
         entities: [Post, User, Updoot],
     });
 
-    await conn.runMigrations();
+    // await conn.runMigrations();
 
     const app = express();
 
@@ -39,7 +39,7 @@ const main = async () => {
     let redis = new Redis(process.env.REDIS_URL);
 
     //makes sure cookie works
-    app.set("proxy", 1);
+    app.set("trust proxy", 1);
     app.use(
         cors({
             origin: process.env.CORS_ORIGIN,
@@ -57,7 +57,7 @@ const main = async () => {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
                 httpOnly: true,
                 secure: __prod__, // cookie only works in https
-                sameSite: "lax",
+                domain: __prod__ ? ".edrohello.xyz" : undefined,
             },
             saveUninitialized: false,
             secret: process.env.SESSION_SECRET,
