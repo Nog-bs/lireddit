@@ -10,5 +10,5 @@ export const useIsAuth = () => {
         if (!loading && !data?.me) {
             router.replace("/login?next=" + router.pathname);
         }
-    }, [data, router]);
+    }, [loading, data, router]);
 };
